@@ -1,0 +1,33 @@
+name: Build Custom OpenCode
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-cli:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build OpenCode
+        run: |
+          ./packages/opencode/script/build.ts
+          ./packages/cli/script/build.ts
+
+      - name: Upload OpenCode binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-custom-build
+          path: |
+            packages/opencode/dist/**
+            packages/cli/dist/**

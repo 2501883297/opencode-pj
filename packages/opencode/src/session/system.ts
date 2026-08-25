@@ -24,6 +24,28 @@ import { Reference } from "@opencode-ai/core/reference"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 
+import fs from "fs"
+import path from "path"
+import os from "os"
+
+
+// 读取本地自定义系统提示词
+// 配置文件位置：~/.config/opencode/builtin.md
+// 修改此文件后无需重新编译 OpenCode，重新启动即可生效
+function loadBuiltinPrompt() {
+  const file = path.join(
+    os.homedir(),
+    ".config/opencode/builtin.md",
+  )
+
+  // 本地文件不存在时，不注入额外提示词
+  if (!fs.existsSync(file)) {
+    return undefined
+  }
+
+  return fs.readFileSync(file, "utf8")
+}
+
 export function provider(model: Provider.Model) {
   if (model.api.id.includes("muse")) {
     const name = model.api.id.includes("muse-glimmer") ? "Muse Glimmer" : "Muse Spark"
@@ -70,6 +92,8 @@ const layer = Layer.effect(
           return (yield* (yield* Reference.Service).list()).filter((reference) => reference.description !== undefined)
         }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
         return [
+          loadBuiltinPrompt(), // 加载本地最高优先级系统提示词
+
           [
             `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
             `Here is some useful information about the environment you are running in:`,

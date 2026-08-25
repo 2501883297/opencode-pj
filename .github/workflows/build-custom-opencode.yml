@@ -22,7 +22,6 @@ jobs:
       - name: Build OpenCode
         run: |
           ./packages/opencode/script/build.ts
-          ./packages/cli/script/build.ts
 
       - name: Upload OpenCode binaries
         uses: actions/upload-artifact@v4
@@ -30,4 +29,3 @@ jobs:
           name: opencode-custom-build
           path: |
             packages/opencode/dist/**
-            packages/cli/dist/**

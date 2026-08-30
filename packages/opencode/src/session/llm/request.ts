@@ -55,19 +55,15 @@ const mergeOptions = (target: Record<string, any>, source: Record<string, any> |
 
 export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: PrepareInput) {
   const isOpenaiOauth = input.provider.id === "openai" && input.auth?.type === "oauth"
-
-  // Keep builtin.md as the first, independent local system block.
-  // The remaining OpenCode/provider/project instructions stay in their existing order.
-  // For OpenAI OAuth this still becomes `options.instructions`, with builtin first.
-  const builtin = SystemPrompt.builtin()
-  const remainder = [
-    ...(input.agent.prompt ? [input.agent.prompt] : SystemPrompt.provider(input.model)),
-    ...input.system,
-    ...(input.user.system ? [input.user.system] : []),
+  const system = [
+    [
+      ...(input.agent.prompt ? [input.agent.prompt] : SystemPrompt.provider(input.model)),
+      ...input.system,
+      ...(input.user.system ? [input.user.system] : []),
+    ]
+      .filter((x) => x)
+      .join("\n"),
   ]
-    .filter((x) => x)
-    .join("\n")
-  const system = [builtin, remainder].filter((x): x is string => Boolean(x))
 
   const header = system[0]
   yield* input.plugin.trigger(
